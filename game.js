@@ -1,45 +1,29 @@
-import { update as updateSnake, draw as drawSnake, SNAKE_SPEED,
-getSnakeHead, snakeIntersection } from './snake.js'
-import { update as updateFood, draw as drawFood } from './food.js'
-import { outsideGrid } from './grid.js'
 
-let lastRenderTime = 0
-let gameOver = false
-const gameBoard = document.getElementById('game-board')
+import { onSnake, expandSnake } from './snake.js'
+import { randomGridPosition } from './grid.js'
 
-function main(currentTime) {
-  if (gameOver) {
-    if (confirm('You lost. Press ok to restart.')) {
-      window.location ='/'
-    }
-    return 
+let food = getRandomFoodPosition()
+const EXPANSION_RATE = 5
+
+export function update() {
+  if (onSnake(food)) {
+    expandSnake(EXPANSION_RATE)
+    food = getRandomFoodPosition()
   }
-
-window.requestAnimatioFrame(main)
-  const secondSinceLastRender = (currentTime - lastRenderTime) /
-1000
-  if (secondSinceLastRender < 1 / SNAKE_SPEED) return
-
-lastRenderTime = currentTime 
-
-update()
-draw()
-}
-window.requestAnimationFrame(main)
-
-function update() {
-  updateSnake()
-  updateFood()
-  checkDeath()
 }
 
-function draw () {
-  gameBoard.innerHTML = ''
-  drawSnake(gameBoard)
-  drawFood(gameBoard)
+export function draw(gameBoard) {
+  const foodElement = document.createElement('div')
+  foodElement.style.gridRowStart = food.y
+  foodElement.style.gridColumnStart = food.x
+  foodElement.classList.add('food')
+  gameBoard.appendChild(foodElement)
 }
 
-function checkDeath() {
-  gameOver = outsideGrid(getSnakeHead()) || snakeIntersection()
+function getRandomFoodPosition() {
+  let newFoodPosition
+  while (newFoodPosition == null || onSnake(newFoodPosition)) {
+    newFoodPosition = randomGridPosition()
+  }
+  return newFoodPosition
 }
-  
